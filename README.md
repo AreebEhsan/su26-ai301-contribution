@@ -1,4 +1,4 @@
-# Contribution [1]: include contract changes in github ci message
+# Contribution 1: include contract changes in github ci message
 
 **Contribution Number:** 1
 **Student:** Areeb Ehsan
