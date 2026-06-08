@@ -3,7 +3,7 @@
 **Contribution Number:** 1
 **Student:** Areeb Ehsan
 **Issue:** https://github.com/graphql-hive/console/issues/6954
-**Status:** [Phase I Complete
+**Status:** Phase I Complete
 
 ---
 
