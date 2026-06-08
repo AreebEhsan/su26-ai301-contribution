@@ -1,15 +1,17 @@
-# Contribution [#]: [Issue Title]
+# Contribution [1]: include contract changes in github ci message
 
-**Contribution Number:** [1 / 2 / 3]  
-**Student:** [Your Name]  
-**Issue:** [GitHub issue link]  
-**Status:** [Phase I / Phase II / Phase III / Phase IV] [In Progress / Complete]
+**Contribution Number:** 1
+**Student:** Areeb Ehsan
+**Issue:** https://github.com/graphql-hive/console/issues/6954
+**Status:** [Phase I Complete
 
 ---
 
 ## Why I Chose This Issue
 
-[1-2 paragraphs explaining why this issue interests you, how it matches your skills/learning goals, what you hope to learn]
+I chose GraphQL Hive Console issue #6954 because it is a meaningful developer-experience improvement in a real open source GraphQL platform. My understanding is that when the main schema does not change but a schema contract does change, the GitHub CI message currently displays "No changes," which can mislead users into thinking nothing relevant changed. A better message should either list the schema contract changes or clearly indicate that schema contracts changed.
+
+This issue interests me because it is more substantial than a simple documentation typo, but still appears scoped enough for a first open source contribution. It matches my JavaScript/TypeScript background and gives me an opportunity to learn how a production codebase generates CI feedback, handles schema checks, and communicates changes to developers. I chose it because the issue is open, labeled as a good first issue, unassigned, and had no linked pull request or branch at the time of selection.
 
 ---
 
