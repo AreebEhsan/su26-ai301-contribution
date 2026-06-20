@@ -1,7 +1,8 @@
 Contribution Number: 1
 Student: Areeb Ehsan
 Issue: graphql-hive/console#6954
-Status: Phase II Complete
+Status: Phase IV — Pull Request Submitted (graphql-hive/console#8166)
+Pull Request: https://github.com/graphql-hive/console/pull/8166
 
 ## Why I Chose This Issue
 
@@ -105,36 +106,55 @@ Thread per-contract change data into `updateGithubCheckRunForSchemaCheck` and fi
 3. In the `Success` branch of the summary builder (schema-publisher.ts:3100), fix the condition so "No changes" is only shown when **both** core changes **and** contract changes are empty. Otherwise build a summary that includes a per-contract changes section (reusing the existing `changesToMarkdown` helper).
 4. (Optional, for testability) Extract the title/summary-building logic into a small pure helper so it can be unit-tested directly without the full `SchemaPublisher` dependency-injection graph.
 
-**Implement:** Branch: https://github.com/AreebEhsan/graphql-hive-console/tree/fix-issue-6954 (Phase III)
+**Implement:** Done (Phase III). Branch `fix-issue-6954`, four atomic commits:
+1. `refactor(schema-publisher): add contractChanges param to github check output`
+2. `refactor(schema-publisher): derive contract changes at schema check call site`
+3. `fix(schema-publisher): include contract changes in github check summary`
+4. `chore: add changeset for contract changes in github check summary`
+
+Plan step 4 (the optional pure-helper extraction) was implemented, since no DI/mocking harness exists for the providers — extracting `buildSchemaCheckSuccessGithubOutput` (with the markdown renderer injected) was the only way to unit-test in the repo's house style. A `'hive': patch` changeset was added (the convention used for server-side platform fixes; `@hive/api` itself is in the changeset `ignore` list).
 
 **Review:**
-- Self-review against `docs/CONTRIBUTING.md` (which points to the-guild's Hive contributing guide) and the repo's commit/PR conventions before opening the PR.
-- The repo uses Changesets — I'll add a changeset describing the user-facing fix if the contribution guidelines require one for this package.
-- Keep the change minimal and matched to the surrounding style (the existing `failedContractCompositionCount` plumbing is my template).
+- Self-reviewed against `docs/CONTRIBUTING.md` (which points to the-guild's Hive contributing guide) and the repo's commit/PR conventions before opening the PR.
+- Added a `'hive': patch` Changeset describing the user-facing fix, matching the convention used by recent server-side fixes in the repo.
+- Kept the change minimal and matched to the surrounding style (the existing `failedContractCompositionCount` plumbing was the template). No drive-by refactors; the other branches' `changesToMarkdown` calls are untouched.
 
-**Evaluate:**
-- Add a unit test asserting that when core changes are empty but contract changes are present, the produced GitHub check title is not "No changes" and the summary mentions the contract. (If the pure helper from Plan step 4 is extracted, this test targets that helper directly.)
-- Run the `@hive/api` test suite to confirm no regressions: `corepack pnpm test --filter @hive/api`.
-- Confirm the existing "truly no changes" case (no core changes AND no contract changes) still reports "No changes".
+**Evaluate:** Done. Behavior preserved byte-for-byte for every project where no contract changed (verified by hand and by a dedicated regression test). Verified with `corepack pnpm vitest run packages/services/api` (97/97), `tsc --noEmit -p packages/services/api/tsconfig.json` (0 errors), and ESLint on the changed files (0 problems). The "truly no changes" case still reports "No changes".
 
 ## Testing Strategy
 
 ### Unit Tests
 
-- [ ] Core changes empty + contract changes present → title is not "No changes" and summary mentions the contract
-- [ ] Core changes empty + contract changes empty → "No changes" still correctly reported (regression guard for existing behavior)
-- [ ] Existing `@hive/api` schema-module suite continues to pass (baseline: `corepack pnpm vitest run packages/services/api/src/modules/schema` → 2 files, 16 tests passed)
+New tests live in `packages/services/api/src/modules/schema/providers/schema-publisher.spec.ts`, targeting the extracted pure helper `buildSchemaCheckSuccessGithubOutput`:
+
+- [x] Core changes empty + contract changes present → title is **not** "No changes" and summary mentions the contract name
+- [x] Core changes empty + contract changes empty → "No changes" still correctly reported (regression guard for existing behavior)
+- [x] Null core changes + null contract changes → "No changes"
+- [x] Contracts present but with empty change lists → "No changes"
+- [x] Core-only changes (no contracts) → byte-for-byte identical to previous behavior
+- [x] Combined core + per-contract changes → both listed in the summary
+- [x] Existing `@hive/api` schema-module suite continues to pass
+
+Results: schema-module scope now **3 files / 22 tests passing** (was 2 / 16); full `@hive/api` unit suite **12 files / 97 tests passing**; `tsc --noEmit` clean; ESLint clean.
 
 ### Integration Tests
 
-- [ ] Not yet planned — to be assessed during Phase III implementation
+- [x] Assessed: not applicable. The Docker-based integration suite requires a live GitHub App and does not exercise this pure logic. The fix is fully covered at the unit layer.
 
 ### Manual Testing
 
-Not performed. A full click-through reproduction requires a live GitHub App installation (public tunnel via loophole/ngrok, GitHub App creation, and installation on a test repo per `docs/DEVELOPMENT.md`), which is out of scope for this contribution. Verification instead relies on the code trace, the implementation plan's unit tests, and the existing test suite.
+Not performed — a click-through reproduction requires a live GitHub App installation (out of scope, see Reproduction Evidence). Verification instead relies on the unit tests above, the full `@hive/api` suite, the type-check, and the lint pass.
 
 ## Implementation Notes
 
 ### Week 2 Progress (Phase II)
 
 Set up the local development environment on Windows: resolved a Node version mismatch (system had v22.20.0, repo requires `>=24.14.1` with `engine-strict=true`) by installing fnm and pinning Node 24.14.1, used Corepack to run the pinned pnpm version, and completed `pnpm install` (3,465 packages linked; the one postinstall failure on `cargo:fix` was confirmed harmless — a no-op outside Cygwin). Ran the baseline `@hive/api` schema-module test suite (16/16 passing). Produced a deterministic code-trace reproduction of the bug (anchored to `schema-publisher.ts:954` and `:3100-3104`) and a full UMPIRE implementation plan modeled on the existing `failedContractCompositionCount` pattern in the same file.
+
+### Week 3 Progress (Phase III)
+
+Implemented the fix in four small, independently-verified commits (each ran the schema test scope + type-check before the next). Added the `contractChanges` parameter to `updateGithubCheckRunForSchemaCheck` mirroring the existing `failedContractCompositionCount` plumbing, derived it from `checkResult.state.contracts` at the success call site, and extracted the success-branch title/summary logic into a pure, testable helper `buildSchemaCheckSuccessGithubOutput` (markdown renderer injected so it can be tested without the full `SchemaPublisher` DI graph). "No changes" now only shows when neither the core schema nor any contract changed; otherwise the summary lists core changes followed by a per-contract section. Wrote 6 unit tests (required cases + edge cases). Final state: 97/97 api unit tests, clean `tsc`, clean ESLint, `'hive': patch` changeset. Scope kept to one source file + one new test file + the changeset; no drive-by refactors.
+
+### Week 4 Progress (Phase IV)
+
+Opened pull request graphql-hive/console#8166 (base `main` ← `AreebEhsan:fix-issue-6954`, +153 / −9 across 3 files), with a description following the repo's PR template and a `Fixes #6954` reference. The automated Gemini Code Assist review returned no feedback ("I have no feedback to provide"). Awaiting CI results and human maintainer review; will iterate on the same branch as feedback arrives (pushes auto-update the PR).
