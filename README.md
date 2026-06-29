@@ -158,3 +158,116 @@ Implemented the fix in four small, independently-verified commits (each ran the 
 ### Week 4 Progress (Phase IV)
 
 Opened pull request graphql-hive/console#8166 (base `main` ← `AreebEhsan:fix-issue-6954`, +153 / −9 across 3 files), with a description following the repo's PR template and a `Fixes #6954` reference. The automated Gemini Code Assist review returned no feedback ("I have no feedback to provide"). Awaiting CI results and human maintainer review; will iterate on the same branch as feedback arrives (pushes auto-update the PR).
+
+
+Contribution Number: 2
+
+Student: Areeb Ehsan
+Issue: langchain-ai/agent-chat-ui#290
+Status: Phase IV — Pull Request Submitted (langchain-ai/agent-chat-ui#296)
+Pull Request: https://github.com/langchain-ai/agent-chat-ui/pull/296
+
+## Why I Chose This Issue
+
+After completing my first open-source contribution cycle with GraphQL Hive Console, I wanted to continue building momentum by starting a second contribution cycle in a related AI/agent tooling ecosystem. I chose langchain-ai/agent-chat-ui because it is part of the LangChain organization and is directly connected to AI agent interfaces, LangGraph workflows, and modern TypeScript/React development.
+
+The issue I selected, langchain-ai/agent-chat-ui#290, was a small but clean frontend bug: the LangGraphLogoSVG component used the SVG attribute clip-path directly in JSX. React expects SVG/DOM attributes to use camelCase, so this caused the browser warning:
+
+Warning: Invalid DOM property 'clip-path'. Did you mean 'clipPath'?
+
+This issue was realistic for a second-cycle contribution because it was open, unassigned, had no linked pull request, and had a clearly scoped fix. It was smaller than my first GraphQL Hive contribution, but it gave me the opportunity to practice moving quickly through the full open-source workflow again: issue selection, local setup, branch creation, focused code change, local verification, and pull request submission.
+
+## Understanding the Issue
+
+### Problem Description
+
+In src/components/icons/langgraph.tsx, the LangGraphLogoSVG component used the raw SVG attribute clip-path in JSX:
+
+<g clip-path="url(#clip0_7880_26096)">
+<g clip-path="url(#clip1_7880_26096)">
+
+React requires SVG attributes in JSX to use camelCase property names. Because of this, React reports an invalid DOM property warning in the browser console.
+
+### Expected Behavior
+
+The component should use React-compliant SVG prop names and render without an invalid DOM property warning.
+
+### Current Behavior
+
+The component renders with a React warning because clip-path is used instead of clipPath.
+
+Affected Component
+src/components/icons/langgraph.tsx — LangGraphLogoSVG
+Reproduction Process
+Steps to Reproduce
+Run the agent-chat-ui app locally.
+Open the UI in the browser.
+Inspect the browser console.
+Observe the React warning related to the invalid clip-path DOM property.
+Observed Result
+
+React reports:
+
+Warning: Invalid DOM property 'clip-path'. Did you mean 'clipPath'?
+Expected Result
+
+No invalid DOM property warning should appear for the LangGraph logo SVG.
+
+### Solution Approach
+
+## Analysis
+
+The issue was caused by using raw SVG attribute names directly in JSX. In React/JSX, SVG attributes such as clip-path must be written in camelCase as clipPath.
+
+##Implemented Fix
+
+I updated both occurrences of clip-path in src/components/icons/langgraph.tsx to clipPath:
+
+<g clipPath="url(#clip0_7880_26096)">
+<g clipPath="url(#clip1_7880_26096)">
+
+The change was intentionally kept minimal and focused only on the invalid SVG prop mentioned in the issue.
+
+### Testing Strategy
+
+##Local Checks
+
+I ran the following checks locally before opening the pull request:
+
+npx tsc --noEmit
+npm run lint
+Results
+TypeScript completed with no errors.
+Lint completed with only pre-existing warnings in unrelated files.
+No new warnings or errors were introduced in src/components/icons/langgraph.tsx.
+Pull Request
+
+PR Link: https://github.com/langchain-ai/agent-chat-ui/pull/296
+
+## PR Description:
+This PR fixes langchain-ai/agent-chat-ui#290 by updating both clip-path SVG attributes in src/components/icons/langgraph.tsx to React’s camelCase clipPath prop. This removes the React invalid DOM property warning for the LangGraph logo SVG.
+
+Relevant Issue: Fixes #290
+
+Files Changed:
+
+src/components/icons/langgraph.tsx
+
+Change Size:
+
+1 file changed
+2 additions
+2 deletions
+Maintainer Feedback / Next Steps
+
+The pull request has been submitted and is awaiting maintainer review. The Vercel preview deployment currently requires authorization from a maintainer, which is expected for an external contributor PR from a fork. I will continue monitoring the PR and will respond to any maintainer feedback or requested changes.
+
+### Current Status
+
+Status: Awaiting review / CI authorization
+
+### Learnings & Reflections
+
+This second contribution reinforced the importance of selecting issues that are clearly scoped and unclaimed. Compared to my first contribution, this fix was much smaller, but it helped me practice the full open-source workflow again in a faster cycle. I also learned that even small frontend warnings matter in production projects because they improve code quality, reduce console noise, and keep React components aligned with framework conventions.
+
+A key takeaway is that a good second-cycle contribution does not always need to be larger than the first. It can also be useful as a way to build consistency, confidence, and familiarity with different repositories and contribution processes.
